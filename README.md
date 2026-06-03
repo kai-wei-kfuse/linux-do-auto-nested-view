@@ -12,10 +12,13 @@
 ## 安装
 
 1. 安装 Tampermonkey、Violentmonkey 或其他用户脚本管理器。
-2. 新建脚本并粘贴 `LINUX-DO-Auto-Nested-View.js` 的内容。
+2. 新建脚本并粘贴 `LINUX-DO-Auto-Nested-View.user.js` 的内容。
 3. 保存后访问 `https://linux.do/` 即可生效。
+
+## Greasy Fork 发布
+
+发布时上传 `LINUX-DO-Auto-Nested-View.user.js`。脚本已包含 Greasy Fork 需要读取的名称、描述、版本、匹配规则和 MIT 许可证元数据。
 
 ## 文件
 
-- `LINUX-DO-Auto-Nested-View.js`：用户脚本主文件。
-
+- `LINUX-DO-Auto-Nested-View.user.js`：用户脚本主文件。

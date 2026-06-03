@@ -1,10 +1,15 @@
 // ==UserScript==
 // @name         LINUX DO Auto Nested View
-// @namespace    https://linux.do/
+// @name:zh-CN   LINUX DO 自动嵌套视图
+// @namespace    https://github.com/kai-wei-kfuse/linux-do-auto-nested-view
 // @version      1.5.1
-// @description  Automatically switch topic pages to nested view
-// @author       Codex
+// @description  Automatically redirect linux.do topic pages and topic links to nested view.
+// @description:zh-CN 自动将 linux.do 主题页和主题链接切换到嵌套视图。
+// @author       kai-wei-kfuse
+// @license      MIT
 // @match        https://linux.do/*
+// @homepageURL  https://github.com/kai-wei-kfuse/linux-do-auto-nested-view
+// @supportURL   https://github.com/kai-wei-kfuse/linux-do-auto-nested-view/issues
 // @run-at       document-start
 // @grant        GM_registerMenuCommand
 // @grant        GM_unregisterMenuCommand
