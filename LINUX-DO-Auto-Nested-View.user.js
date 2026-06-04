@@ -2,7 +2,7 @@
 // @name         LINUX DO Auto Nested View
 // @name:zh-CN   LINUX DO 自动嵌套视图
 // @namespace    https://github.com/kai-wei-kfuse/linux-do-auto-nested-view
-// @version      1.5.1
+// @version      1.5.2
 // @description  Automatically redirect linux.do topic pages and topic links to nested view.
 // @description:zh-CN 自动将 linux.do 主题页和主题链接切换到嵌套视图。
 // @author       kai-wei-kfuse
@@ -22,6 +22,8 @@
   "use strict";
 
   const ENABLED_STORAGE_KEY = "linuxdo-auto-nested-view-enabled";
+  const TITLE_STORAGE_PREFIX = "linuxdo-auto-nested-view-topic-title-";
+  const SITE_TITLE = "LINUX DO";
   const pageWindow =
     typeof unsafeWindow === "undefined" ? window : unsafeWindow;
 
@@ -96,6 +98,7 @@
     startObserver();
     rewriteTopicLinks();
     redirectToNested();
+    syncDocumentTitle();
   }
 
   function extractTopicId(pathname) {
@@ -131,6 +134,114 @@
     return url.toString();
   }
 
+  function getTopicIdFromUrl(urlLike) {
+    try {
+      const url = new URL(urlLike, pageWindow.location.origin);
+      return extractTopicId(url.pathname);
+    } catch {
+      return null;
+    }
+  }
+
+  function normalizeTopicTitle(text) {
+    const title = text?.replace(/\s+/g, " ").trim();
+    if (!title || title.toUpperCase() === "LINUXDO") {
+      return null;
+    }
+
+    return title.replace(/\s+-\s+LINUX\s*DO$/i, "").trim() || null;
+  }
+
+  function extractTitleFromLink(link) {
+    if (!link) {
+      return null;
+    }
+
+    const titleNode = link.querySelector?.(
+      ".title, .topic-title, [data-topic-title]"
+    );
+    return (
+      normalizeTopicTitle(titleNode?.textContent) ||
+      normalizeTopicTitle(link.getAttribute("title")) ||
+      normalizeTopicTitle(link.getAttribute("aria-label")) ||
+      normalizeTopicTitle(link.textContent)
+    );
+  }
+
+  function rememberTopicTitle(link) {
+    const topicId = getTopicIdFromUrl(link?.href);
+    const title = extractTitleFromLink(link);
+    if (!topicId || !title) {
+      return;
+    }
+
+    try {
+      sessionStorage.setItem(`${TITLE_STORAGE_PREFIX}${topicId}`, title);
+    } catch {
+      // Ignore storage failures; page DOM title detection can still recover.
+    }
+  }
+
+  function loadRememberedTopicTitle(topicId) {
+    try {
+      return normalizeTopicTitle(
+        sessionStorage.getItem(`${TITLE_STORAGE_PREFIX}${topicId}`)
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  function findTopicTitleInPage() {
+    const metaTitle =
+      normalizeTopicTitle(
+        document.querySelector('meta[property="og:title"]')?.content
+      ) ||
+      normalizeTopicTitle(
+        document.querySelector('meta[name="twitter:title"]')?.content
+      );
+    if (metaTitle) {
+      return metaTitle;
+    }
+
+    const titleSelectors = [
+      "h1 .fancy-title",
+      "h1.topic-title",
+      ".topic-title h1",
+      ".topic-title",
+      ".title-wrapper h1",
+      "h1",
+    ];
+
+    for (const selector of titleSelectors) {
+      const title = normalizeTopicTitle(
+        document.querySelector(selector)?.textContent
+      );
+      if (title) {
+        return title;
+      }
+    }
+
+    return null;
+  }
+
+  function syncDocumentTitle() {
+    if (!autoConvertEnabled || !isNestedPage(pageWindow.location.pathname)) {
+      return;
+    }
+
+    const topicId = extractTopicId(pageWindow.location.pathname);
+    const title = findTopicTitleInPage() || loadRememberedTopicTitle(topicId);
+    if (!title) {
+      return;
+    }
+
+    const nextTitle = `${title} - ${SITE_TITLE}`;
+    if (document.title !== nextTitle) {
+      document.title = nextTitle;
+    }
+  }
+
   function rewriteTopicLinks(root = document) {
     if (!autoConvertEnabled) {
       return;
@@ -147,6 +258,7 @@
         continue;
       }
 
+      rememberTopicTitle(link);
       link.href = nestedUrl;
       rewrittenLinks.add(link);
     }
@@ -166,6 +278,7 @@
       return;
     }
 
+    rememberTopicTitle(link);
     link.href = nestedUrl;
     rewrittenLinks.add(link);
   }
@@ -218,6 +331,7 @@
       return;
     }
 
+    rememberTopicTitle(link);
     event.preventDefault();
     event.stopPropagation();
     event.stopImmediatePropagation?.();
@@ -246,6 +360,7 @@
     const { pathname, href } = pageWindow.location;
 
     if (href === lastHandledUrl) {
+      syncDocumentTitle();
       return;
     }
 
@@ -258,6 +373,7 @@
       }
 
       lastHandledUrl = href;
+      syncDocumentTitle();
       return;
     }
 
@@ -307,6 +423,7 @@
       }
 
       redirectToNested();
+      syncDocumentTitle();
     });
 
     observer.observe(document.documentElement, {
@@ -328,6 +445,7 @@
       const result = original.apply(this, args);
       if (autoConvertEnabled) {
         setTimeout(redirectToNested, 0);
+        setTimeout(syncDocumentTitle, 0);
       }
       return result;
     };
@@ -340,6 +458,7 @@
   window.addEventListener("DOMContentLoaded", () => {
     rewriteTopicLinks();
     redirectToNested();
+    syncDocumentTitle();
   });
   window.addEventListener("click", forceNotificationNavigation, true);
   window.addEventListener("pointerdown", interceptNavigationEvent, true);
