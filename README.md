@@ -12,8 +12,15 @@
 ## 安装
 
 1. 安装 Tampermonkey、Violentmonkey 或其他用户脚本管理器。
-2. 新建脚本并粘贴 `LINUX-DO-Auto-Nested-View.user.js` 的内容。
-3. 保存后访问 `https://linux.do/` 即可生效。
+    - Tampermonkey:
+  
+      [<img alt="Available in the Chrome Web Store" src="https://developer.chrome.com/static/docs/webstore/branding/image/iNEddTyWiMfLSwFD6qGq.png" height="48">](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) 
+      [<img alt="Get it from Microsoft Edge Add-ons" src="https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/add-ons-badge-images/microsoft-edge-add-ons-badge.png" height="48">](https://microsoftedge.microsoft.com/addons/detail/%E7%AF%A1%E6%94%B9%E7%8C%B4/iikmkjmpaadaobahmlepeloendndfphd)
+    - ScriptCat:
+  
+       [<img alt="Available in the Chrome Web Store" src="https://developer.chrome.com/static/docs/webstore/branding/image/iNEddTyWiMfLSwFD6qGq.png" height="48">](https://chrome.google.com/webstore/detail/scriptcat/ndcooeababalnlpkfedmmbbbgkljhpjf)
+      [<img alt="Get it from Microsoft Edge Add-ons" src="https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/add-ons-badge-images/microsoft-edge-add-ons-badge.png" height="48">](https://microsoftedge.microsoft.com/addons/detail/scriptcat/liilgpjgabokdklappibcjfablkpcekh)
+2. 点击安装本仓库源码 [LINUX-DO-Auto-Nested-View.user.js](https://github.com/kai-wei-kfuse/linux-do-auto-nested-view/raw/refs/heads/main/LINUX-DO-Auto-Nested-View.user.js)，或直接前往[Greasy Fork](https://greasyfork.org/zh-CN/scripts/580934-linux-do-auto-nested-view%E8%87%AA%E5%8A%A8%E5%B5%8C%E5%A5%97-%E6%A0%91%E5%BD%A2-%E8%A7%86%E5%9B%BE)安装
 
 ## Greasy Fork 发布
 
