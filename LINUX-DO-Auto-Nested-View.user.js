@@ -2,7 +2,7 @@
 // @name         LINUX DO Auto Nested View
 // @name:zh-CN   LINUX DO 自动嵌套视图
 // @namespace    https://github.com/kai-wei-kfuse/linux-do-auto-nested-view
-// @version      1.5.2
+// @version      1.5.3
 // @description  Automatically redirect linux.do topic pages and topic links to nested view.
 // @description:zh-CN 自动将 linux.do 主题页和主题链接切换到嵌套视图。
 // @author       kai-wei-kfuse
@@ -23,6 +23,8 @@
 
   const ENABLED_STORAGE_KEY = "linuxdo-auto-nested-view-enabled";
   const TITLE_STORAGE_PREFIX = "linuxdo-auto-nested-view-topic-title-";
+  const PRIVATE_MESSAGE_STORAGE_PREFIX =
+    "linuxdo-auto-nested-view-private-message-";
   const SITE_TITLE = "LINUX DO";
   const pageWindow =
     typeof unsafeWindow === "undefined" ? window : unsafeWindow;
@@ -192,6 +194,83 @@
     }
   }
 
+  function rememberPrivateMessageTopic(link) {
+    const topicId = getTopicIdFromUrl(link?.href);
+    if (!topicId) {
+      return;
+    }
+
+    try {
+      sessionStorage.setItem(`${PRIVATE_MESSAGE_STORAGE_PREFIX}${topicId}`, "1");
+    } catch {
+      // Ignore storage failures; context checks still protect visible menu links.
+    }
+  }
+
+  function isRememberedPrivateMessageUrl(urlLike) {
+    const topicId = getTopicIdFromUrl(urlLike);
+    if (!topicId) {
+      return false;
+    }
+
+    try {
+      return (
+        sessionStorage.getItem(`${PRIVATE_MESSAGE_STORAGE_PREFIX}${topicId}`) ===
+        "1"
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  function isPrivateMessageContext(target) {
+    if (!(target instanceof Element)) {
+      return false;
+    }
+
+    return Boolean(
+      target.closest(
+        [
+          "#quick-access-messages",
+          ".quick-access-messages",
+          ".user-menu-messages-list",
+          ".user-messages-list",
+          ".private-messages-list",
+          ".messages-list",
+          ".message-list",
+          ".menu-panel.messages",
+          ".menu-panel.private-messages",
+          ".quick-access-panel.messages",
+          ".quick-access-panel.private-messages",
+          "[data-user-menu-tab='messages']",
+          "[data-tab='messages']",
+          "[data-section='messages']",
+          "[data-name='messages']",
+          "[data-type='private_message']",
+          "[data-notification-type='private_message']",
+          "[data-archetype='private_message']",
+        ].join(",")
+      )
+    );
+  }
+
+  function shouldSkipNestedConversion(link) {
+    if (!link) {
+      return false;
+    }
+
+    if (isRememberedPrivateMessageUrl(link.href)) {
+      return true;
+    }
+
+    if (!isPrivateMessageContext(link)) {
+      return false;
+    }
+
+    rememberPrivateMessageTopic(link);
+    return true;
+  }
+
   function findTopicTitleInPage() {
     const metaTitle =
       normalizeTopicTitle(
@@ -249,6 +328,10 @@
 
     const links = root.querySelectorAll('a[href]');
     for (const link of links) {
+      if (shouldSkipNestedConversion(link)) {
+        continue;
+      }
+
       const nestedUrl = toNestedUrl(link.href);
       if (!nestedUrl) {
         continue;
@@ -270,6 +353,10 @@
     }
 
     if (!link || !link.href) {
+      return;
+    }
+
+    if (shouldSkipNestedConversion(link)) {
       return;
     }
 
@@ -304,7 +391,6 @@
           ".notifications-list",
           ".notification-history",
           ".menu-panel.notifications",
-          ".quick-access-panel",
           ".notification",
           "[data-notification-id]",
         ].join(",")
@@ -323,6 +409,10 @@
 
     const link = findAnchorFromEventTarget(event.target);
     if (!link) {
+      return;
+    }
+
+    if (shouldSkipNestedConversion(link)) {
       return;
     }
 
@@ -382,6 +472,11 @@
       return;
     }
 
+    if (isRememberedPrivateMessageUrl(href)) {
+      lastHandledUrl = href;
+      return;
+    }
+
     const link = document.querySelector("a.nested-view-link");
     if (link && link.href) {
       lastHandledUrl = href;
@@ -435,7 +530,12 @@
   function hookHistoryMethod(methodName) {
     const original = pageWindow.history[methodName];
     pageWindow.history[methodName] = function (...args) {
-      if (autoConvertEnabled && args.length >= 3 && args[2] != null) {
+      if (
+        autoConvertEnabled &&
+        args.length >= 3 &&
+        args[2] != null &&
+        !isRememberedPrivateMessageUrl(args[2])
+      ) {
         const nestedUrl = toNestedUrl(args[2]);
         if (nestedUrl) {
           args[2] = nestedUrl;
