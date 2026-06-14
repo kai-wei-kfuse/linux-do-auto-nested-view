@@ -2,7 +2,7 @@
 // @name         LINUX DO Auto Nested View
 // @name:zh-CN   LINUX DO 自动嵌套视图
 // @namespace    https://github.com/kai-wei-kfuse/linux-do-auto-nested-view
-// @version      1.5.3
+// @version      1.5.4
 // @description  Automatically redirect linux.do topic pages and topic links to nested view.
 // @description:zh-CN 自动将 linux.do 主题页和主题链接切换到嵌套视图。
 // @author       kai-wei-kfuse
@@ -398,12 +398,39 @@
     );
   }
 
-  function forceNotificationNavigation(event) {
+  function isBookmarkArea(target) {
+    if (!(target instanceof Element)) {
+      return false;
+    }
+
+    return Boolean(
+      target.closest(
+        [
+          "#quick-access-bookmarks",
+          ".quick-access-bookmarks",
+          ".user-menu-bookmarks-list",
+          ".bookmarks-list",
+          ".menu-panel.bookmarks",
+          ".quick-access-panel.bookmarks",
+          "[data-user-menu-tab='bookmarks']",
+          "[data-tab='bookmarks']",
+          "[data-section='bookmarks']",
+          "[data-name='bookmarks']",
+        ].join(",")
+      )
+    );
+  }
+
+  function shouldForceNestedNavigation(target) {
+    return isNotificationArea(target) || isBookmarkArea(target);
+  }
+
+  function forceMenuTopicNavigation(event) {
     if (!autoConvertEnabled) {
       return;
     }
 
-    if (!isNotificationArea(event.target)) {
+    if (!shouldForceNestedNavigation(event.target)) {
       return;
     }
 
@@ -560,7 +587,7 @@
     redirectToNested();
     syncDocumentTitle();
   });
-  window.addEventListener("click", forceNotificationNavigation, true);
+  window.addEventListener("click", forceMenuTopicNavigation, true);
   window.addEventListener("pointerdown", interceptNavigationEvent, true);
   window.addEventListener("mousedown", interceptNavigationEvent, true);
   window.addEventListener("click", interceptNavigationEvent, true);
