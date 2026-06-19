@@ -1,6 +1,7 @@
 # LINUX DO Auto Nested View
 
-自动将 [linux.do](https://linux.do/) 主题页切换到嵌套视图（树形/nest）的用户脚本。
+自动将 [linux.do](https://linux.do/) 主题页切换到嵌套视图（树形/nest）的用户脚本。(l站已经关闭nest视图所以此插件已作废)
+
 
 ## 功能
 
